@@ -1,3 +1,4 @@
+package Client;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -8,6 +9,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.*;
 import java.awt.*;
+import java.util.Vector;
 
 /*
  * To change this license header, choose License Headers in Project Properties.
@@ -28,9 +30,13 @@ public class ClientForm extends javax.swing.JFrame {
     Socket server = null;
     DataInputStream in = null;
     DataOutputStream out = null;
+    Vector<String> q = null;
+    String username = "anonymous";
     
     public ClientForm() {
         initComponents();
+        btn_receive.setVisible(false);
+        q = new Vector<String>();
     }
 
     /**
@@ -68,6 +74,7 @@ public class ClientForm extends javax.swing.JFrame {
             }
         });
 
+        txt_msg.setEditable(false);
         txt_msg.setColumns(20);
         txt_msg.setRows(5);
         jScrollPane1.setViewportView(txt_msg);
@@ -197,7 +204,7 @@ public class ClientForm extends javax.swing.JFrame {
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
-                new ClientForm().setVisible(true);
+               new ClientForm().setVisible(true);
             }
         });
     }
