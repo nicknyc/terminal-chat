@@ -32,6 +32,7 @@ public class ClientForm extends javax.swing.JFrame {
     DataOutputStream out = null;
     Vector<String> q = null;
     String username = "anonymous";
+    String groupname = "public";
     
     public ClientForm() {
         initComponents();
@@ -139,7 +140,6 @@ public class ClientForm extends javax.swing.JFrame {
             JOptionPane.showMessageDialog(null, "Connected to server.");
             ReceiveMessage clientThread = new ReceiveMessage(in,txt_msg);
             clientThread.setDaemon(true);
-            clientThread.setName("Server");
             clientThread.start();
         } catch (UnknownHostException ex) {
             JOptionPane.showMessageDialog(null, "Connected failed!");
@@ -161,7 +161,14 @@ public class ClientForm extends javax.swing.JFrame {
     private void txt_sendActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txt_sendActionPerformed
         try {
             // TODO add your handling code here:
-            out.writeUTF(txt_in.getText());
+            String msg = txt_in.getText();
+            if(msg.startsWith("#")){
+                //Command string do not encapsulate msg
+            }
+            else{
+                msg = groupname + " " + username + " " + msg;
+            }
+            out.writeUTF(msg);
         } catch (IOException ex) {
             Logger.getLogger(ClientForm.class.getName()).log(Level.SEVERE, null, ex);
         }

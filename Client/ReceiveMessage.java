@@ -32,8 +32,11 @@ public class ReceiveMessage extends Thread{
         while(true){
             try {
                 msg = in.readUTF();
+                if(msg.startsWith("server: ")){
+                    //server reply command
+                }
                 a.append("\n" + msg);
-                System.out.println(this.getName() + msg);
+                System.out.println(msg);
             } catch (IOException ex) {
                 System.out.println("Error reading message: "+ex);
             }
