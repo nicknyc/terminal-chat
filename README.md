@@ -3,5 +3,5 @@ Programe (maybe) has encountered memory leak issue (Error: java.lang.OutOfMemory
 
 new Lite Version
 - has no mutiple clients/ chatroom
-- but lots liter
+- but lots more lighter
 - also lots of stablility
