@@ -5,7 +5,7 @@ import java.io.*;
 
 public class ChatServer implements Runnable {
 
-	private Vector<ChatServerThread> clients = new Vector<ChatServerThread>();
+	private ChatServerThread[] clients = null;
 	private MessageQueueThread messageQueue = null;
 	private ServerSocket server = null;
 	private Thread thread = null;
