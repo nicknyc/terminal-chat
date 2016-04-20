@@ -1,11 +1,8 @@
+package Server;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
-import java.net.ServerSocket;
-import java.net.Socket;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import java.io.*;
+import java.net.*;
+import java.util.*;
 import javax.swing.JOptionPane;
 
 /*
@@ -24,6 +21,9 @@ public class ServerForm extends javax.swing.JFrame {
     Socket client = null;
     DataOutputStream out = null;
     DataInputStream in = null;
+    Vector<String> q = null;
+    Vector<String> group = null;
+    
     
     /**
      * Creates new form ServerForm
@@ -63,6 +63,7 @@ public class ServerForm extends javax.swing.JFrame {
             }
         });
 
+        txt_area.setEditable(false);
         txt_area.setColumns(20);
         txt_area.setRows(5);
         jScrollPane1.setViewportView(txt_area);
@@ -74,9 +75,7 @@ public class ServerForm extends javax.swing.JFrame {
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                    .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
-                        .addComponent(btn_startServer)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                    .addComponent(btn_startServer, javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(jScrollPane1, javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
                         .addGap(0, 0, Short.MAX_VALUE)
@@ -107,14 +106,17 @@ public class ServerForm extends javax.swing.JFrame {
             // TODO add your handling code here:
             server = new ServerSocket(2122);
             client = server.accept();
+            q = new Vector<String>();
             System.out.println("Client request accepted");
             //JOptionPane.showMessageDialog(null, "Client request accepted");
             out = new DataOutputStream(client.getOutputStream());
             in = new DataInputStream(client.getInputStream());
-            ReceiveMessage serverThread = new ReceiveMessage(in,txt_area);
+            SendMessage mainThread = new SendMessage(out,q,txt_area);
+            ReceiveMessage serverThread = new ReceiveMessage(in,q);
             serverThread.setDaemon(true);
             serverThread.setName("Client");
             serverThread.start();
+            mainThread.start();
         } catch (IOException ex) {
             JOptionPane.showMessageDialog(null,"No clients available");
             
@@ -125,11 +127,8 @@ public class ServerForm extends javax.swing.JFrame {
     private void btn_sendMsgActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn_sendMsgActionPerformed
         // TODO add your handling code here:
         String msg =  txt_msg.getText();
-        try {
-            out.writeUTF(msg);
-        } catch (IOException ex) {
-            Logger.getLogger(ServerForm.class.getName()).log(Level.SEVERE, null, ex);
-        }
+        q.add("server: " + msg);
+        txt_msg.setText("");
     }//GEN-LAST:event_btn_sendMsgActionPerformed
 
     /**

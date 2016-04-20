@@ -1,7 +1,9 @@
+package Server;
 
 import java.io.*;
 import java.net.*;
 import java.awt.*;
+import java.util.Vector;
 import javax.swing.*;
 
 
@@ -18,18 +20,20 @@ import javax.swing.*;
 public class ReceiveMessage extends Thread{
     String msg = "";
     DataInputStream in = null;
-    JTextArea txt_area = null;
+    Vector<String> q = null;
     
-    public ReceiveMessage(DataInputStream d,JTextArea a){
+    public ReceiveMessage(DataInputStream d,Vector<String> q){
         this.in = d;
-        this.txt_area = a;
+        this.q = q;
     }
     
     public void run(){
         while(true){
             try {
                 msg = in.readUTF();
-                txt_area.append("\n" + this.getName() + ": " + msg);
+                q.add(this.getName() + ": " + msg);
+                System.out.println(this.getName()+" " + msg);
+                System.out.println(q.size());
             } catch (IOException ex) {
                 System.out.println("Error reading message: "+ex);
             }
