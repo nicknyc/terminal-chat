@@ -18,11 +18,11 @@ import javax.swing.JOptionPane;
 public class ServerForm extends javax.swing.JFrame {
     
     ServerSocket server = null;
-    Socket client = null;
-    DataOutputStream out = null;
-    DataInputStream in = null;
+    Vector<ChatServerThread> clients = null;
     Vector<String> q = null;
-    Vector<String> group = null;
+    Vector<String> groups = null;
+    int clientCount = 0;
+    
     
     
     /**
@@ -105,18 +105,18 @@ public class ServerForm extends javax.swing.JFrame {
         try {
             // TODO add your handling code here:
             server = new ServerSocket(2122);
-            client = server.accept();
             q = new Vector<String>();
-            System.out.println("Client request accepted");
+            //System.out.println("Client request accepted");
             //JOptionPane.showMessageDialog(null, "Client request accepted");
-            out = new DataOutputStream(client.getOutputStream());
-            in = new DataInputStream(client.getInputStream());
-            SendMessage mainThread = new SendMessage(out,q,txt_area);
-            ReceiveMessage serverThread = new ReceiveMessage(in,q);
-            serverThread.setDaemon(true);
-            serverThread.setName("Client");
-            serverThread.start();
-            mainThread.start();
+            clients = new Vector<ChatServerThread>();
+            while(true){
+                ChatServerThread newClient = new ChatServerThread(this,server.accept());
+                System.out.println("Client accepted.");
+                newClient.openConnection();
+                clients.add(clientCount, newClient);
+                clientCount++;
+                newClient.start();
+            }
         } catch (IOException ex) {
             JOptionPane.showMessageDialog(null,"No clients available");
             
