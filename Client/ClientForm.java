@@ -9,7 +9,9 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.*;
 import java.awt.*;
+import java.util.Iterator;
 import java.util.Vector;
+import static sun.org.mozilla.javascript.internal.Context.exit;
 
 /*
  * To change this license header, choose License Headers in Project Properties.
@@ -31,13 +33,34 @@ public class ClientForm extends javax.swing.JFrame {
     DataInputStream in = null;
     DataOutputStream out = null;
     Vector<String> q = null;
+    Vector<String> groups = null;
     String username = "anonymous";
     String groupname = "public";
+    boolean online = false;
     
     public ClientForm() {
         initComponents();
-        btn_receive.setVisible(false);
+        //this.txt_in.setEnabled(false);
+        this.setLocationByPlatform(true);
+        this.setTitle("Terminal Chat Lite 0.4b");
+        groups = new Vector<String>();
         q = new Vector<String>();
+        try {
+            // TODO add your handling code here:
+            server = new Socket("127.0.0.1",2122);
+            in = new DataInputStream(server.getInputStream());
+            out = new DataOutputStream(server.getOutputStream());
+            JOptionPane.showMessageDialog(null, "Connected to server.");
+            online = true;
+            ReceiveMessage clientThread = new ReceiveMessage(in,txt_msg,this);
+            clientThread.setDaemon(true);
+            clientThread.start();
+        } catch (UnknownHostException ex) {
+            JOptionPane.showMessageDialog(null, "Connected failed!");
+        } catch (IOException ex) {
+            JOptionPane.showMessageDialog(null, "Fail");
+        }
+        
     }
 
     /**
@@ -50,34 +73,18 @@ public class ClientForm extends javax.swing.JFrame {
     private void initComponents() {
 
         jToggleButton1 = new javax.swing.JToggleButton();
-        btn_connectClient = new javax.swing.JToggleButton();
-        btn_receive = new javax.swing.JToggleButton();
         jScrollPane1 = new javax.swing.JScrollPane();
         txt_msg = new javax.swing.JTextArea();
         txt_in = new javax.swing.JTextField();
-        txt_send = new javax.swing.JToggleButton();
 
         jToggleButton1.setText("jToggleButton1");
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
-        btn_connectClient.setText("Connect");
-        btn_connectClient.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                btn_connectClientActionPerformed(evt);
-            }
-        });
-
-        btn_receive.setText("Receive");
-        btn_receive.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                btn_receiveActionPerformed(evt);
-            }
-        });
-
         txt_msg.setEditable(false);
         txt_msg.setColumns(20);
         txt_msg.setRows(5);
+        txt_msg.setText("Terminal Chat Version 0.4 Beta");
         jScrollPane1.setViewportView(txt_msg);
 
         txt_in.addActionListener(new java.awt.event.ActionListener() {
@@ -85,11 +92,9 @@ public class ClientForm extends javax.swing.JFrame {
                 txt_inActionPerformed(evt);
             }
         });
-
-        txt_send.setText("Send");
-        txt_send.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                txt_sendActionPerformed(evt);
+        txt_in.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyPressed(java.awt.event.KeyEvent evt) {
+                txt_inKeyPressed(evt);
             }
         });
 
@@ -100,86 +105,33 @@ public class ClientForm extends javax.swing.JFrame {
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jScrollPane1)
-                    .addGroup(layout.createSequentialGroup()
-                        .addComponent(btn_connectClient)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addComponent(btn_receive))
-                    .addGroup(layout.createSequentialGroup()
-                        .addComponent(txt_in, javax.swing.GroupLayout.PREFERRED_SIZE, 335, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(txt_send)
-                        .addGap(0, 0, Short.MAX_VALUE)))
+                    .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 398, Short.MAX_VALUE)
+                    .addComponent(txt_in))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(btn_connectClient)
-                    .addComponent(btn_receive))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 195, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(20, 20, 20)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(txt_in, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(txt_send))
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 233, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(txt_in, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(14, Short.MAX_VALUE))
         );
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
-    private void btn_connectClientActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn_connectClientActionPerformed
-        try {
-            // TODO add your handling code here:
-            server = new Socket("127.0.0.1",2122);
-            in = new DataInputStream(server.getInputStream());
-            out = new DataOutputStream(server.getOutputStream());
-            JOptionPane.showMessageDialog(null, "Connected to server.");
-            ReceiveMessage clientThread = new ReceiveMessage(in,txt_msg);
-            clientThread.setDaemon(true);
-            clientThread.start();
-        } catch (UnknownHostException ex) {
-            JOptionPane.showMessageDialog(null, "Connected failed!");
-        } catch (IOException ex) {
-            JOptionPane.showMessageDialog(null, "Fail");
-        }
-    }//GEN-LAST:event_btn_connectClientActionPerformed
-
-    private void btn_receiveActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn_receiveActionPerformed
-        try {
-            // TODO add your handling code here:
-            String msg = in.readUTF();
-            txt_msg.append("\n" + msg);
-        } catch (IOException ex) {
-            Logger.getLogger(ClientForm.class.getName()).log(Level.SEVERE, null, ex);
-        }
-    }//GEN-LAST:event_btn_receiveActionPerformed
-
-    private void txt_sendActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txt_sendActionPerformed
-        try {
-            // TODO add your handling code here:
-            String msg = txt_in.getText();
-            if(msg.startsWith("#")){
-                //Command string do not encapsulate msg
-            }
-            else{
-                msg = groupname + " " + username + " " + msg;
-            }
-            out.writeUTF(msg);
-        } catch (IOException ex) {
-            Logger.getLogger(ClientForm.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        finally{
-            txt_in.setText("");
-        }
-    }//GEN-LAST:event_txt_sendActionPerformed
-
     private void txt_inActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txt_inActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_txt_inActionPerformed
+
+    private void txt_inKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_txt_inKeyPressed
+        // TODO add your handling code here:
+        if(evt.getKeyCode() == java.awt.event.KeyEvent.VK_ENTER){
+            send();
+        }
+    }//GEN-LAST:event_txt_inKeyPressed
 
     /**
      * @param args the command line arguments
@@ -192,7 +144,7 @@ public class ClientForm extends javax.swing.JFrame {
          */
         try {
             for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
-                if ("Nimbus".equals(info.getName())) {
+                if ("Windows".equals(info.getName())) {
                     javax.swing.UIManager.setLookAndFeel(info.getClassName());
                     break;
                 }
@@ -217,12 +169,81 @@ public class ClientForm extends javax.swing.JFrame {
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JToggleButton btn_connectClient;
-    private javax.swing.JToggleButton btn_receive;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JToggleButton jToggleButton1;
     private javax.swing.JTextField txt_in;
     private javax.swing.JTextArea txt_msg;
-    private javax.swing.JToggleButton txt_send;
     // End of variables declaration//GEN-END:variables
+
+    private void send() {
+        try {
+            // TODO add your handling code here:
+            String msg = txt_in.getText();
+            if(msg.startsWith("#")){
+                //Command string do not encapsulate msg
+                try{
+                    String localCommand = msg.substring(1,msg.indexOf(" "));
+                    String param = msg.substring(msg.indexOf(" ")).trim();
+                    System.out.println("'" + localCommand + "' '" + param + "'");
+                    //end get input
+                    if(localCommand.equalsIgnoreCase("create")){
+                        this.groups.add(param);
+                    }
+                    else if(localCommand.equalsIgnoreCase("join")){
+                        this.groups.add(param);
+                        this.groupname = param;
+                    }
+                    else if(localCommand.equalsIgnoreCase("leave")){
+                        this.groups.remove(groupname);
+                        this.groupname = "public";
+                    }
+                    else if(localCommand.equalsIgnoreCase("hostname")){
+                        this.username = param;
+                    }
+                    else if(localCommand.equalsIgnoreCase("enter")){
+                        if(this.groups.contains(param));
+                        this.groupname = param;
+                    }
+                    else if(localCommand.equalsIgnoreCase("mute")){
+                        this.online = false;
+                    }
+                    else if(localCommand.equalsIgnoreCase("unmute")){
+                        this.online = true;
+                        for (Iterator<String> it = q.iterator(); it.hasNext();) {
+                            String unread = it.next();
+                            unread.substring(0, unread.indexOf(" ")).equalsIgnoreCase(groupname);
+                            String groupname = msg.substring(0,msg.indexOf(" "));
+                            String tmp = msg.substring(msg.indexOf(" ") + 1);
+                            String username = tmp.substring(0,tmp.indexOf(" "));
+                            String txt = tmp.substring(tmp.indexOf(" ") + 1);
+                            msg = username + ": " + txt;
+                            txt_msg.append("\n" + msg);
+                            System.out.println(msg);
+                        }
+                    }
+                    else if(localCommand.equalsIgnoreCase("exit")){
+                        exit();
+                    }
+                    else if(localCommand.equalsIgnoreCase("list")){
+                        txt_in.setText("-list");
+                        this.send();
+                    }
+                }
+                catch(Exception ex){
+                    System.out.println("Error wrong input");
+                    this.txt_msg.append("\n'" + msg + "' is not recognized as an internal or external command.");
+                }
+            }
+            else{
+                if(!msg.equalsIgnoreCase("-list")){
+                    msg = groupname + " " + username + " " + msg;
+                }
+                out.writeUTF(msg);
+            }
+        } catch (IOException ex) {
+            Logger.getLogger(ClientForm.class.getName()).log(Level.SEVERE, null, ex);
+        } finally{
+            txt_in.setText("");
+        }
+    }
 }
