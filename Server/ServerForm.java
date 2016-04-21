@@ -18,20 +18,21 @@ import javax.swing.JOptionPane;
 public class ServerForm extends javax.swing.JFrame {
     
     ServerSocket server = null;
-    Vector<Socket> clients = null;
+    Vector<ChatServerThread> clients = null;
     Vector<String> q = null;
+    Vector<String> groups = null;
+    boolean running = false;
     int clientCount = 0;
-    
-    
-    
-    
     /**
      * Creates new form ServerForm
      */
     public ServerForm() {
         initComponents();
     }
-
+    
+    /*public void println(String msg){
+        this.txt_area.append("\n" + msg);
+    }*/
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -42,10 +43,6 @@ public class ServerForm extends javax.swing.JFrame {
     private void initComponents() {
 
         btn_startServer = new javax.swing.JToggleButton();
-        txt_msg = new javax.swing.JTextField();
-        btn_sendMsg = new javax.swing.JToggleButton();
-        jScrollPane1 = new javax.swing.JScrollPane();
-        txt_area = new javax.swing.JTextArea();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -56,46 +53,21 @@ public class ServerForm extends javax.swing.JFrame {
             }
         });
 
-        btn_sendMsg.setText("Send");
-        btn_sendMsg.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                btn_sendMsgActionPerformed(evt);
-            }
-        });
-
-        txt_area.setEditable(false);
-        txt_area.setColumns(20);
-        txt_area.setRows(5);
-        jScrollPane1.setViewportView(txt_area);
-
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                 .addContainerGap()
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                    .addComponent(btn_startServer, javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jScrollPane1, javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(layout.createSequentialGroup()
-                        .addGap(0, 0, Short.MAX_VALUE)
-                        .addComponent(txt_msg, javax.swing.GroupLayout.PREFERRED_SIZE, 250, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(btn_sendMsg)))
-                .addGap(20, 20, 20))
+                .addComponent(btn_startServer)
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
                 .addComponent(btn_startServer)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 191, Short.MAX_VALUE)
-                .addGap(18, 18, 18)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(btn_sendMsg)
-                    .addComponent(txt_msg, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(23, 23, 23))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
         pack();
@@ -106,20 +78,17 @@ public class ServerForm extends javax.swing.JFrame {
             // TODO add your handling code here:
             server = new ServerSocket(2122);
             q = new Vector<String>();
-            //System.out.println("Client request accepted");
-            //JOptionPane.showMessageDialog(null, "Client request accepted");
-            clients = new Vector<Socket>();
-            SendMessage mainThread = new SendMessage(q, txt_area);
-            ReceiveMessage serverThread = new ReceiveMessage(q);
-            while(true){
-                Socket client = server.accept();
+            groups = new Vector<String>();
+            clients = new Vector<ChatServerThread>();
+            running = true;
+            while(running){
+                ChatServerThread client = new ChatServerThread(this, server.accept());
                 System.out.println("Client accepted.");
                 clients.add(client);
-                mainThread.addOutput(new DataOutputStream(client.getOutputStream()));
-                serverThread.addInput(new DataInputStream(client.getInputStream()));
-                if(!mainThread.running)mainThread.start();
-                if(!serverThread.running)serverThread.start();
-                System.out.println("Thread is built");
+                client.openConnection();
+                client.start();
+                clientCount++;
+                System.out.println("Thread is built " + clients.size() + " clients running");
             }
         } catch (IOException ex) {
             JOptionPane.showMessageDialog(null,"No clients available");
@@ -127,14 +96,12 @@ public class ServerForm extends javax.swing.JFrame {
         }
         
     }//GEN-LAST:event_btn_startServerActionPerformed
-
-    private void btn_sendMsgActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn_sendMsgActionPerformed
-        // TODO add your handling code here:
-        String msg =  txt_msg.getText();
-        q.add("server: " + msg);
-        txt_msg.setText("");
-    }//GEN-LAST:event_btn_sendMsgActionPerformed
-
+    
+    protected void broadcast(String msg) throws IOException{
+        for(ChatServerThread client: clients){
+            client.out.writeUTF(msg);
+        }
+    }
     /**
      * @param args the command line arguments
      */
@@ -146,7 +113,7 @@ public class ServerForm extends javax.swing.JFrame {
          */
         try {
             for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
-                if ("Nimbus".equals(info.getName())) {
+                if ("Windows".equals(info.getName())) {
                     javax.swing.UIManager.setLookAndFeel(info.getClassName());
                     break;
                 }
@@ -171,10 +138,6 @@ public class ServerForm extends javax.swing.JFrame {
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JToggleButton btn_sendMsg;
     private javax.swing.JToggleButton btn_startServer;
-    private javax.swing.JScrollPane jScrollPane1;
-    private javax.swing.JTextArea txt_area;
-    private javax.swing.JTextField txt_msg;
     // End of variables declaration//GEN-END:variables
 }
