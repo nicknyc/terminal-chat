@@ -21,6 +21,7 @@ public class ReceiveMessage extends Thread{
     String msg = "";
     Vector<DataInputStream> in = null;
     Vector<String> q = null;
+    boolean running = false;
     
     public ReceiveMessage(Vector<String> q){
         this.in = new Vector<DataInputStream>();
@@ -28,17 +29,22 @@ public class ReceiveMessage extends Thread{
     }
     
     public void run(){
-        while(true){
-            try {
-                for(DataInputStream is: in){
+        running = true;
+        System.out.println("Ready to Receive message");
+        while(running){
+            System.out.println( in.size() + "client available");
+            for(DataInputStream is: in){
+                try {
+                    System.out.println("reading InputStream " + in.indexOf(is));
                     msg = is.readUTF();
                     q.add(msg);
                     System.out.println(this.getName()+" " + msg);
                     System.out.println(q.size());
+                } catch (IOException ex) {
+                    System.out.println("Error reading message: "+ex);
                 }
-            } catch (IOException ex) {
-                System.out.println("Error reading message: "+ex);
             }
+            
         }
     }
 

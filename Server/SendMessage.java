@@ -21,7 +21,7 @@ class SendMessage extends Thread {
     private Vector<String> q;
     private Vector<DataOutputStream> out;
     private JTextArea a = null;
-    private boolean running = false;
+    protected boolean running = false;
 
     public SendMessage(Vector<String> q, JTextArea a) {
         super();
@@ -32,8 +32,9 @@ class SendMessage extends Thread {
     
     public void run(){
         running = true;
+        System.out.println("Ready to Send message");
         while(running){
-            System.out.println("Queue has " + q.size() +" messages waiting");
+            //System.out.println("Queue has " + q.size() +" messages waiting");
             while(q.size() > 0){
                 try {
                     String msg = q.remove(0);
@@ -44,6 +45,7 @@ class SendMessage extends Thread {
                 } catch (IOException ex) {
                     Logger.getLogger(SendMessage.class.getName()).log(Level.SEVERE, null, ex);
                 }
+                System.out.println("MSG Delivered!");
             }
         }
     }

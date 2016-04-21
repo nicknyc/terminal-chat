@@ -117,6 +117,9 @@ public class ServerForm extends javax.swing.JFrame {
                 clients.add(client);
                 mainThread.addOutput(new DataOutputStream(client.getOutputStream()));
                 serverThread.addInput(new DataInputStream(client.getInputStream()));
+                if(!mainThread.running)mainThread.start();
+                if(!serverThread.running)serverThread.start();
+                System.out.println("Thread is built");
             }
         } catch (IOException ex) {
             JOptionPane.showMessageDialog(null,"No clients available");
