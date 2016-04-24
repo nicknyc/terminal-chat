@@ -11,7 +11,6 @@ import javax.swing.*;
 import java.awt.*;
 import java.util.Iterator;
 import java.util.Vector;
-import static sun.org.mozilla.javascript.internal.Context.exit;
 
 /*
  * To change this license header, choose License Headers in Project Properties.
@@ -231,7 +230,7 @@ public class ClientForm extends javax.swing.JFrame {
                             }
                     }
                     else if(localCommand.equalsIgnoreCase("exit")){
-                        exit();
+                        System.exit(0);
                     }
                     else if(localCommand.equalsIgnoreCase("list")){
                         txt_in.setText("-list");
