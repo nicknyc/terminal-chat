@@ -209,17 +209,26 @@ public class ClientForm extends javax.swing.JFrame {
                     }
                     else if(localCommand.equalsIgnoreCase("unmute")){
                         this.online = true;
-                        for (Iterator<String> it = q.iterator(); it.hasNext();) {
-                            String unread = it.next();
-                            unread.substring(0, unread.indexOf(" ")).equalsIgnoreCase(groupname);
-                            String groupname = msg.substring(0,msg.indexOf(" "));
-                            String tmp = msg.substring(msg.indexOf(" ") + 1);
-                            String username = tmp.substring(0,tmp.indexOf(" "));
-                            String txt = tmp.substring(tmp.indexOf(" ") + 1);
-                            msg = username + ": " + txt;
-                            txt_msg.append("\n" + msg);
-                            System.out.println(msg);
-                        }
+                            //connect(serverIP);
+                            Vector<String> q2 = new Vector<String>();
+                            Iterator it = q.iterator();
+                            while (it.hasNext()) {
+                                String unread = (String) it.next();
+                                String groupname = unread.substring(0,unread.indexOf(" "));
+                                if(groupname.equalsIgnoreCase(groupname)){
+                                    String tmp;
+                                    tmp = unread.substring(unread.indexOf(" ") + 1);
+                                    String username = tmp.substring(0,tmp.indexOf(" "));
+                                    String txt = tmp.substring(tmp.indexOf(" ") + 1);
+                                    unread = username + ": " + txt;
+                                    txt_msg.append("\n" + unread);
+                                    System.out.println(unread);
+                                }
+                                else{
+                                    q2.add(unread);
+                                }
+                                q = q2;
+                            }
                     }
                     else if(localCommand.equalsIgnoreCase("exit")){
                         exit();
